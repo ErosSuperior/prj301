@@ -2,16 +2,6 @@
 
 USE ClothesShop
 
-DROP TABLE OrderItem
-DROP TABLE Orders
-DROP TABLE Payments
-DROP TABLE Products
-DROP TABLE Suppliers
-DROP TABLE Categories
-DROP TABLE Types
-DROP TABLE Users
-
-
 CREATE TABLE Users (
   id INT NOT NULL IDENTITY(1,1),
   firstname NVARCHAR(30) NOT NULL,

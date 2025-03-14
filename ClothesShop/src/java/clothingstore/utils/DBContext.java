@@ -32,7 +32,7 @@ public class DBContext {
         String url = "jdbc:sqlserver://localhost:1433;"
                 + "databaseName=ClothesShop";
         //3. Open connection
-        Connection con = DriverManager.getConnection(url, "sa", "sa");
+        Connection con = DriverManager.getConnection(url, "sa", "123");
         return con;
     }
 
