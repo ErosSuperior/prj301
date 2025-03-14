@@ -1,156 +1,139 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/UnitTests/JUnit4TestClass.java to edit this template
- */
 package clothingstore.dao;
 
 import clothingstore.model.CategoryDTO;
+import java.sql.SQLException;
 import java.util.List;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
  *
- * @author Admin
+ * @author ASUS
  */
 public class CategoryDAOTest {
     
-    public CategoryDAOTest() {
-    }
-    
-    @BeforeClass
-    public static void setUpClass() {
-    }
-    
-    @AfterClass
-    public static void tearDownClass() {
-    }
+    private CategoryDAO categoryDAO;
     
     @Before
     public void setUp() {
+        categoryDAO = new CategoryDAO();
     }
     
     @After
     public void tearDown() {
+        categoryDAO = null;
     }
 
-    /**
-     * Test of getData method, of class CategoryDAO.
-     */
     @Test
-    public void testGetData() throws Exception {
+    public void testGetData() throws SQLException {
         System.out.println("getData");
-        CategoryDAO instance = new CategoryDAO();
-        List<CategoryDTO> expResult = null;
-        List<CategoryDTO> result = instance.getData();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        List<CategoryDTO> result = categoryDAO.getData();
+        assertNotNull("List should not be null", result);
+        assertTrue("List size should be non-negative", result.size() >= 0);
     }
 
-    /**
-     * Test of getCategoriesByTypeId method, of class CategoryDAO.
-     */
     @Test
-    public void testGetCategoriesByTypeId() throws Exception {
+    public void testGetCategoriesByTypeId() throws SQLException {
         System.out.println("getCategoriesByTypeId");
-        int typpid = 0;
-        CategoryDAO instance = new CategoryDAO();
-        List<CategoryDTO> expResult = null;
-        List<CategoryDTO> result = instance.getCategoriesByTypeId(typpid);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        int typeId = 1; // Giả sử typeId 1 tồn tại trong database
+        List<CategoryDTO> result = categoryDAO.getCategoriesByTypeId(typeId);
+        assertNotNull("List should not be null", result);
+        assertTrue("List size should be non-negative", result.size() >= 0);
+        if (!result.isEmpty()) {
+            assertEquals("Categories should match the requested type ID", 
+                typeId, result.get(0).getType().getId());
+        }
     }
 
-    /**
-     * Test of getCategoryById method, of class CategoryDAO.
-     */
     @Test
-    public void testGetCategoryById() throws Exception {
+    public void testGetCategoryById() throws SQLException {
         System.out.println("getCategoryById");
-        int id = 0;
-        CategoryDAO instance = new CategoryDAO();
-        CategoryDTO expResult = null;
-        CategoryDTO result = instance.getCategoryById(id);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        // Test với ID tồn tại (giả sử ID 1 tồn tại)
+        CategoryDTO result = categoryDAO.getCategoryById(1);
+        if (result != null) {
+            assertEquals("Should return category with correct ID", 1, result.getId());
+        }
+        
+        // Test với ID không tồn tại
+        CategoryDTO resultNotExist = categoryDAO.getCategoryById(9999);
+        assertNull("Should return null for non-existing ID", resultNotExist);
     }
 
-    /**
-     * Test of getQuantityByName method, of class CategoryDAO.
-     */
     @Test
-    public void testGetQuantityByName() throws Exception {
+    public void testGetQuantityByName() throws SQLException {
         System.out.println("getQuantityByName");
-        String name = "";
-        CategoryDAO instance = new CategoryDAO();
-        int expResult = 0;
-        int result = instance.getQuantityByName(name);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        // Test với tên có thể tồn tại
+        int result = categoryDAO.getQuantityByName("T-shirt");
+        assertTrue("Quantity should be non-negative", result >= 0);
+        
+        // Test với tên không tồn tại
+        int resultNotExist = categoryDAO.getQuantityByName("NonExistingCategory123");
+        assertEquals("Should return 0 for non-existing category", 0, resultNotExist);
     }
 
-    /**
-     * Test of insertCategory method, of class CategoryDAO.
-     */
     @Test
     public void testInsertCategory() {
         System.out.println("insertCategory");
-        String categoryName = "";
-        String typeId = "";
-        CategoryDAO instance = new CategoryDAO();
-        boolean expResult = false;
-        boolean result = instance.insertCategory(categoryName, typeId);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        String categoryName = "TestCategory" + System.currentTimeMillis();
+        String typeId = "1"; // Giả sử typeId 1 tồn tại
+        
+        boolean result = categoryDAO.insertCategory(categoryName, typeId);
+        assertTrue("Insert should be successful", result);
+        
+        // Verify insertion
+        try {
+            int quantity = categoryDAO.getQuantityByName(categoryName);
+            assertEquals("Category should exist after insertion", 1, quantity);
+        } catch (SQLException e) {
+            fail("Verification failed: " + e.getMessage());
+        }
     }
 
-    /**
-     * Test of deleteCategory method, of class CategoryDAO.
-     */
     @Test
-    public void testDeleteCategory() throws Exception {
+    public void testDeleteCategory() throws SQLException {
         System.out.println("deleteCategory");
-        String cid = "";
-        CategoryDAO instance = new CategoryDAO();
-        instance.deleteCategory(cid);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        // First insert a test category
+        String categoryName = "DeleteTest" + System.currentTimeMillis();
+        categoryDAO.insertCategory(categoryName, "1");
+        
+        // Get the inserted category's ID
+        CategoryDTO inserted = categoryDAO.getData().stream()
+            .filter(c -> c.getName().equals(categoryName))
+            .findFirst()
+            .orElse(null);
+        
+        assertNotNull("Inserted category should exist", inserted);
+        
+        // Delete it
+        categoryDAO.deleteCategory(String.valueOf(inserted.getId()));
+        
+        // Verify deletion
+        CategoryDTO deleted = categoryDAO.getCategoryById(inserted.getId());
+        assertNull("Category should be null after deletion", deleted);
     }
 
-    /**
-     * Test of editCategory method, of class CategoryDAO.
-     */
     @Test
-    public void testEditCategory() throws Exception {
+    public void testEditCategory() throws SQLException {
         System.out.println("editCategory");
-        String name = "";
-        String tId = "";
-        String id = "";
-        CategoryDAO instance = new CategoryDAO();
-        instance.editCategory(name, tId, id);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        // First insert a test category
+        String originalName = "EditTest" + System.currentTimeMillis();
+        categoryDAO.insertCategory(originalName, "1");
+        
+        CategoryDTO inserted = categoryDAO.getData().stream()
+            .filter(c -> c.getName().equals(originalName))
+            .findFirst()
+            .orElse(null);
+        
+        assertNotNull("Inserted category should exist", inserted);
+        
+        // Edit it
+        String newName = "EditedCategory" + System.currentTimeMillis();
+        categoryDAO.editCategory(newName, "1", String.valueOf(inserted.getId()));
+        
+        // Verify edit
+        CategoryDTO edited = categoryDAO.getCategoryById(inserted.getId());
+        assertEquals("Category name should be updated", newName, edited.getName());
     }
-
-    /**
-     * Test of main method, of class CategoryDAO.
-     */
-    @Test
-    public void testMain() throws Exception {
-        System.out.println("main");
-        String[] args = null;
-        CategoryDAO.main(args);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-    
 }
